@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>chat app with socket</title>
+	<style type="text/css">
+	#chat{
+		height:500px;
+	}
+	#contentwrap{
+		display:none;
+	}
+	#chatwrap{
+		float:left;
+		boarder:1px #000 solid;
+	}
+	</style>
+</head>
+
+
+<body>
+<div id ="nickwrap">
+<p> Enter a username:</p>
+<p id="nickerror"></p>
+<form id ="setnick">
+<input size="35" id ="nickname">
+<input type="submit">
+</form>
+</div>
+<div id="contentwrap">
+	<div id="chatwrap">
+		<div id="chat"></div>
+			<form id="send-message">
+			<input size="35" id="message"></input>
+			<input type="submit"></input>
+			</form>
+	</div>
+	<div id="users"></div>
+</div>
+
+
+
+
+<script src="http://code.jquery.com/jquery-latest.min.js">
+</script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+	jQuery(function($){
+
+      var socket=io.connect();
+      var $nickform=$('#setnick');
+      var $nickerror=$('#nickerror');
+      var $nickbox = $('#nickname');
+        var $users=$('#users');
+
+       var $messageform= $('#send-message');
+       var $messagebox= $('#message');
+       var $chat= $('#chat');
+
+
+       $nickform.submit(function(e){
+       	e.preventDefault();
+       	socket.emit('new user', $nickbox.val(), function(data){
+       		if(data){
+       			$('#nickwrap').hide();
+       			$('#contentwrap').show();
+       		}else{
+       			$('#nickerror').html('the user name is already exists try with other name');
+       		}
+
+       	});
+       	$nickbox.val('');
+       });
+
+    socket.on('usernames',function(data){
+       var html='';
+       for(i=0;i<=data.length;i++){
+        html+=data[i]+'<br/>';
+       }
+        $('#users').html(html);
+    });
+
+      $messageform.submit(function(e){
+         e.preventDefault();
+         
+         socket.emit('send message',$messagebox.val());
+         $messagebox.val('');
+
+         });
+       socket.on('new message', function(data){
+       	$chat.append(data + "<br/>");
+       });
+	});
+</script>
+</body>
+</html>
